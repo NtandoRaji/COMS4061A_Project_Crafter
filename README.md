@@ -31,12 +31,12 @@ The project focuses on:
 - Crafter Paper: [https://arxiv.org/pdf/2109.06780](https://arxiv.org/pdf/2109.06780)
 
 
-## ⚙️ Project Structure 
+## Project Structure 
 ```
 COMS4061A_Project_Crafter/
 │
 ├── scripts/
-|   ├── utilities                # Utility functions for evaulation, etc.
+|   ├── utilities                # Utility functions for evaluation, etc.
 │   ├── dqn/                     # DQN agent implementation and training
 │   └── ppo/                     # PPO agent implementation and training
 |       ├── baseline/            # Baseline PPO agent
@@ -112,9 +112,9 @@ tensorboard --logdir logs/
 
 ### Base Phase
 - Implement and evaluate a baseline **DQN agent** (from course material).
-- Implement and evaluate a **PPO agent** (not covered in course). 
+- Implement and evaluate a **PPO agent** (not covered in the course). 
 
-## 🏁 Acknowledgements  
+## Acknowledgements  
 - [Danijar Hafner](https://github.com/danijar) for the Crafter environment.  
 - [Stable-Baselines3](https://github.com/DLR-RM/stable-baselines3) developers. 
 - Crafter issue fix reference: https://github.com/danijar/crafter/issues/8

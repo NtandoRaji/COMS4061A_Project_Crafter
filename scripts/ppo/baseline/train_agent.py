@@ -13,8 +13,8 @@ from stable_baselines3.common.monitor import Monitor
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.append(PROJECT_ROOT)
 
-from scripts.ppo.env.wrappers import CustomCrafterEnv, CrafterStatsWrapper
-from scripts.ppo.env.callbacks import CrafterCustomLogger
+from scripts.ppo.environment.wrappers import CustomCrafterEnv, CrafterStatsWrapper
+from scripts.ppo.environment.callbacks import CrafterCustomLogger
 
 # ------------------------
 # Register environments

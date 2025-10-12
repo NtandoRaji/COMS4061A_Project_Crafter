@@ -2,10 +2,7 @@ import argparse
 import os
 import sys
 import gymnasium as gym
-import numpy as np
-import imageio
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 from stable_baselines3.common.monitor import Monitor
 
 # ------------------------
@@ -14,7 +11,7 @@ from stable_baselines3.common.monitor import Monitor
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.append(PROJECT_ROOT)
 
-from scripts.ppo.env.wrappers import CustomCrafterEnv, CrafterStatsWrapper, ResizeForVideoWrapper
+from scripts.ppo.environment.wrappers import CustomCrafterEnv, CrafterStatsWrapper, ResizeForVideoWrapper
 from scripts.utilities.evaluate import evaluate
 
 # ------------------------

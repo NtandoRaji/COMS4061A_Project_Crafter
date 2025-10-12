@@ -1,0 +1,43 @@
+name: crafter_env
+channels:
+  - defaults
+dependencies:
+  - libsqlite=3.50.4
+  - openssl=3.5.3
+  - tk=8.6.15
+  - ca-certificates=2025.9.9
+  - llvm-openmp=20.1.8
+  - python=3.10.18
+  - numpy=1.26.4
+  - bzip2=1.0.8
+  - xz=5.8.1
+  - libcxx=20.1.8
+  - liblzma-devel=5.8.1
+  - psutil=7.0.0
+  - liblzma=5.8.1
+  - libexpat=2.7.1
+  - readline=8.3
+  - setuptools=78.1.1
+  - libblas=3.9.0
+  - expat=2.7.1
+  - zlib=1.3.1
+  - libgfortran=15.1.0
+  - xz-gpl-tools=5.8.1
+  - libopenblas=0.3.30
+  - ncurses=6.5
+  - tzdata=2025b
+  - xz-tools=5.8.1
+  - python_abi=3.10
+  - libzlib=1.3.1
+  - liblapack=3.9.0
+  - libcblas=3.9.0
+  - libffi=3.4.4
+  - sqlite=3.50.2
+  - icu=75.1
+  - wheel=0.45.1
+  - pip=25.2
+  - libgfortran5=15.1.0
+  - gymnasium
+  - six
+  - tqdm
+prefix: /home/degen101/miniconda3/envs/crafter_env

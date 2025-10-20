@@ -257,7 +257,7 @@ class CrafterStatsWrapper(gym.Wrapper):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
-        self.current_reward += float(reward)
+        self.current_reward += float(info.get("extrinsic_reward", reward))
 
         # Merge achievements if present
         if isinstance(info, dict) and "achievements" in info:
@@ -292,3 +292,35 @@ class CrafterStatsWrapper(gym.Wrapper):
         if num == 0:
             return {}
         return {k: v / num for k, v in all_achievements.items()}
+
+
+class ICMWrapper(gym.Wrapper):
+    def __init__(self, env: gym.Env, icm_model: nn.Module, eta: float=0.01, device: str="cpu"):
+        super().__init__(env)
+        self.icm = icm_model
+        self.eta = eta
+        self.device = device
+        self.last_obs = None
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        self.last_obs = T.tensor(np.array(obs), dtype=T.float32, device=self.device)
+        return obs, info
+
+    def step(self, action):
+        obs, reward, done, truncated, info = self.env.step(action)
+
+        obs_t = T.tensor(np.array(obs), dtype=T.float32, device=self.device)
+        act_t = T.tensor([action], device=self.device)
+
+        # Compute intrinsic reward
+        with T.no_grad():
+            r_int, _, _ = self.icm(self.last_obs, act_t, obs_t)
+            r_int = r_int.squeeze(0).item()
+
+        r_total = float(reward + self.eta * r_int)
+        info["extrinsic_reward"] = reward
+        info["intrinsic_reward"] = r_int
+        self.last_obs = obs_t
+
+        return obs, r_total, done, truncated, info

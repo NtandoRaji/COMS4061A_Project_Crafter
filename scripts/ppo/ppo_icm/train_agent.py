@@ -56,7 +56,7 @@ def make_env(hyper_params: dict, icm: nn.Module):
         env = ICMWrapper(env, icm, hyper_params["icm_eta"], hyper_params["device"])
         env = CrafterStatsWrapper(env)
         env = Monitor(env)
-        env.reset(seed=42)
+        env.reset(seed=hyper_params["seed"])
         return env
     return _init
 
@@ -65,9 +65,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--outdir', default='./logs/crafter_reward-ppo_icm/0')
     parser.add_argument('--steps', type=int, default=1_000_000)
-    parser.add_argument('--model_path', default=f"./scripts/ppo/models/ppo_icm_basline_crafter_{time.time()}.zip")
+    parser.add_argument('--model_path', default=f"./scripts/ppo/models/ppo_icm_crafter_{time.time()}.zip")
     parser.add_argument('--log_dir', default="./logs/ppo_icm_baseline_crafter")
-    parser.add_argument('--results_dir', default="./results/ppo_icm_basline_training_metrics.csv")
+    parser.add_argument('--results_dir', default="./results/ppo_icm_training_metrics.csv")
     parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 

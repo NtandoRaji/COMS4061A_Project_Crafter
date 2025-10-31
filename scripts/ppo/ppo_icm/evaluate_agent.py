@@ -11,6 +11,7 @@ from stable_baselines3.common.monitor import Monitor
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.append(PROJECT_ROOT)
 
+from scripts.utilities.seed_setter import set_global_seeds
 from scripts.ppo.environment.wrappers import *
 from scripts.utilities.evaluate import evaluate
 
@@ -46,7 +47,7 @@ def make_env(hyper_params: dict):
     env = CrafterStatsWrapper(env)
     env = Monitor(env)
     env = ResizeForVideoWrapper(env, 512, 512)
-    env.reset(seed=42)
+    env.reset(seed=hyper_params["seed"])
     return env
 
 
@@ -55,6 +56,7 @@ def main():
     parser.add_argument('--model_path', required=True, help="Path to trained PPO model (.zip)")
     parser.add_argument('--video_path', default="./videos/ppo_icm_evaluation.mp4", help="Optional path to save video (e.g., ./eval_run.mp4)")
     parser.add_argument('--num_episodes', type=int, default=10, help="Number of evaluation episodes")
+    parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 
 
@@ -66,7 +68,7 @@ def main():
         "latent_dim": 128,
         "device": "cpu",
         "n_stack_frames": 4,
-        "verbose": True
+        "seed": args.seed
     }
     env = make_env(hyper_params)
 

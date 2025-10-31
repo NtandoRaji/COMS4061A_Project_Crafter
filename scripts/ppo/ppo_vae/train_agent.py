@@ -14,6 +14,7 @@ from stable_baselines3.common.monitor import Monitor
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.append(PROJECT_ROOT)
 
+from scripts.utilities.seed_setter import set_global_seeds
 from scripts.ppo.environment.wrappers import *
 from scripts.ppo.environment.callbacks import CrafterCustomLogger
 from scripts.ppo.environment.feature_extractors import CrafterLatentFeatures
@@ -53,6 +54,7 @@ def make_env(hyper_params: dict):
 
         env = CrafterStatsWrapper(env)
         env = Monitor(env)
+        env.reset(seed=hyper_params["seed"])
         return env
     return _init
 
@@ -62,17 +64,20 @@ def main():
     parser.add_argument('--outdir', default='./logs/crafter_reward-ppo_vae/0')
     parser.add_argument('--steps', type=int, default=1_000_000)
     parser.add_argument('--model_path', default=f"./scripts/ppo/models/ppo_vae_basline_crafter_{time.time()}.zip")
-    parser.add_argument('--video_path', default="crafter_run.mp4")
-    parser.add_argument('--log_dir', default="./logs/ppo_vae_baseline_crafter")
-    parser.add_argument('--results_dir', default="./results/ppo_vae_basline_training_metrics.csv")
+    parser.add_argument('--log_dir', default="./logs/ppo_vae_crafter")
+    parser.add_argument('--results_dir', default="./results/ppo_vae_training_metrics.csv")
+    parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 
     # --- Training environment ---
     hyper_params = {
         "num_envs": 4,
         "n_stack_frames": 4,
-        "verbose": True
+        "verbose": True,
+        "seed": args.seed
     }
+
+    set_global_seeds(hyper_params["seed"])
 
     env = SubprocVecEnv([make_env(hyper_params) for _ in range(hyper_params["num_envs"])])
 

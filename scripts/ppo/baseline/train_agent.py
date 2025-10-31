@@ -13,6 +13,7 @@ from stable_baselines3.common.monitor import Monitor
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.append(PROJECT_ROOT)
 
+from scripts.utilities.seed_setter import set_global_seeds
 from scripts.ppo.environment.wrappers import CustomCrafterEnv, CrafterStatsWrapper
 from scripts.ppo.environment.callbacks import CrafterCustomLogger
 
@@ -34,12 +35,13 @@ gym.register(
 )
 
 
-def make_env():
+def make_env(hyper_params: dict):
     """Returns a function that creates a Crafter environment for SB3."""
     def _init():
         env = gym.make("CustomCrafterReward-v1")
         env = CrafterStatsWrapper(env)
         env = Monitor(env)
+        env.reset(seed=hyper_params["seed"])
         return env
     return _init
 
@@ -52,15 +54,23 @@ def main():
     parser.add_argument('--video_path', default="crafter_run.mp4")
     parser.add_argument('--log_dir', default="./logs/ppo_baseline_crafter")
     parser.add_argument('--results_dir', default="./results/ppo_basline_training_metrics.csv")
+    parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 
     # --- Training environment ---
-    num_envs = 4
-    env = SubprocVecEnv([make_env() for _ in range(num_envs)])
+    hyper_params = {
+        "num_envs": 4,
+        "verbose": True,
+        "seed": args.seed
+    }
+
+    set_global_seeds(hyper_params["seed"])
+
+    env = SubprocVecEnv([make_env(hyper_params) for _ in range(hyper_params["num_envs"])])
     env = VecTransposeImage(env)
 
     # --- Initializing PPO model ---
-    model = PPO("CnnPolicy", env, verbose=1, tensorboard_log=args.log_dir)
+    model = PPO("CnnPolicy", env, verbose=hyper_params["verbose"], tensorboard_log=args.log_dir)
 
     # --- Attaching Custom Logger ---
     logger =  CrafterCustomLogger(log_path=args.results_dir)

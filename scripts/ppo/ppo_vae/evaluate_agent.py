@@ -12,8 +12,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..
 sys.path.append(PROJECT_ROOT)
 
 from scripts.utilities.seed_setter import set_global_seeds
-from scripts.ppo.environment.wrappers import CustomCrafterEnv, CrafterStatsWrapper, ResizeForVideoWrapper
+from scripts.ppo.environment.wrappers import *
 from scripts.utilities.evaluate import evaluate
+from scripts.ppo.environment.feature_extractors import CrafterLatentFeatures
+
+
+device = T.device('cuda' if T.cuda.is_available() else 'cpu')
 
 # ------------------------
 # Register environments
@@ -34,8 +38,14 @@ gym.register(
 
 
 def make_env(hyper_params: dict):
-    """Creates a Crafter environment for SB3."""
-    env = gym.make("CustomCrafterReward-v1")
+    env = gym.make("CustomCrafterReward-v1", render_mode="rgb_array")
+    env = GrayscaleFrame(env)
+    env = ScaledFloatFrame(env)
+    env = PyTorchFrame(env)
+
+    if hyper_params["n_stack_frames"] > 1:
+        env = FrameStack(env, hyper_params["n_stack_frames"])
+
     env = CrafterStatsWrapper(env)
     env = Monitor(env)
     env = ResizeForVideoWrapper(env, 512, 512)
@@ -46,13 +56,20 @@ def make_env(hyper_params: dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', required=True, help="Path to trained PPO model (.zip)")
-    parser.add_argument('--video_path', default="./videos/ppo_baseline_evaluation.mp4", help="Optional path to save video (e.g., ./eval_run.mp4)")
+    parser.add_argument('--video_path', default="./videos/ppo_vae_baseline_evaluation.mp4", help="Optional path to save video (e.g., ./eval_run.mp4)")
     parser.add_argument('--num_episodes', type=int, default=10, help="Number of evaluation episodes")
     parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 
+
     # --- Create evaluation environment ---
     hyper_params = {
+        "vae_model_path": "./scripts/ppo/models/vae_checkpoint.pth",
+        "image_dims": (4, 64, 64),
+        "latent_dim": 128,
+        "device": "cpu",
+        "n_stack_frames": 4,
+        "verbose": True,
         "seed": args.seed
     }
 

@@ -3,8 +3,9 @@ import os
 import sys
 import time
 import gymnasium as gym
+import torch as T
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import SubprocVecEnv, VecTransposeImage
+from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.monitor import Monitor
 
 # ------------------------
@@ -14,8 +15,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..
 sys.path.append(PROJECT_ROOT)
 
 from scripts.utilities.seed_setter import set_global_seeds
-from scripts.ppo.environment.wrappers import CustomCrafterEnv, CrafterStatsWrapper
+from scripts.ppo.environment.wrappers import *
 from scripts.ppo.environment.callbacks import CrafterCustomLogger
+from scripts.ppo.environment.feature_extractors import CrafterLatentFeatures
+
+
+device = T.device('cuda' if T.cuda.is_available() else 'cpu')
 
 # ------------------------
 # Register environments
@@ -36,9 +41,17 @@ gym.register(
 
 
 def make_env(hyper_params: dict):
+
     """Returns a function that creates a Crafter environment for SB3."""
     def _init():
-        env = gym.make("CustomCrafterReward-v1")
+        env = gym.make("CustomCrafterReward-v1", render_mode="rgb_array")
+        env = GrayscaleFrame(env)
+        env = ScaledFloatFrame(env)
+        env = PyTorchFrame(env)
+
+        if hyper_params["n_stack_frames"] > 1:
+            env = FrameStack(env, hyper_params["n_stack_frames"])
+
         env = CrafterStatsWrapper(env)
         env = Monitor(env)
         env.reset(seed=hyper_params["seed"])
@@ -48,18 +61,18 @@ def make_env(hyper_params: dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--outdir', default='./logs/crafter_reward-ppo/0')
+    parser.add_argument('--outdir', default='./logs/crafter_reward-ppo_vae/0')
     parser.add_argument('--steps', type=int, default=1_000_000)
-    parser.add_argument('--model_path', default=f"./scripts/ppo/models/ppo_basline_crafter_{time.time()}.zip")
-    parser.add_argument('--video_path', default="crafter_run.mp4")
-    parser.add_argument('--log_dir', default="./logs/ppo_baseline_crafter")
-    parser.add_argument('--results_dir', default="./results/ppo_basline_training_metrics.csv")
+    parser.add_argument('--model_path', default=f"./scripts/ppo/models/ppo_vae_basline_crafter_{time.time()}.zip")
+    parser.add_argument('--log_dir', default="./logs/ppo_vae_crafter")
+    parser.add_argument('--results_dir', default="./results/ppo_vae_training_metrics.csv")
     parser.add_argument('--seed', default=42)
     args = parser.parse_args()
 
     # --- Training environment ---
     hyper_params = {
         "num_envs": 4,
+        "n_stack_frames": 4,
         "verbose": True,
         "seed": args.seed
     }
@@ -67,10 +80,24 @@ def main():
     set_global_seeds(hyper_params["seed"])
 
     env = SubprocVecEnv([make_env(hyper_params) for _ in range(hyper_params["num_envs"])])
-    env = VecTransposeImage(env)
 
     # --- Initializing PPO model ---
-    model = PPO("CnnPolicy", env, verbose=hyper_params["verbose"], tensorboard_log=args.log_dir)
+    policy_kwargs = dict(
+        features_extractor_class=CrafterLatentFeatures,
+        features_extractor_kwargs= {
+            "latent_dim": 128,
+            "model_path": "./scripts/ppo/models/vae_checkpoint.pth",
+            "device": device
+        }
+    )
+
+    model = PPO(
+            "CnnPolicy", 
+            env, 
+            policy_kwargs=policy_kwargs, 
+            verbose=hyper_params["verbose"], 
+            tensorboard_log=args.log_dir
+        )
 
     # --- Attaching Custom Logger ---
     logger =  CrafterCustomLogger(log_path=args.results_dir)

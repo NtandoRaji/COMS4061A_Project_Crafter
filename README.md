@@ -68,8 +68,16 @@ conda activate crafter_env
 ### 3. Install Crafter and Dependencies  
 ```bash
 pip install stable-baselines3 opencv-python
-pip install git+https://github.com/catid/crafter.git
 ```
+Each algorithm requires different verstions of the crafter env (one compatible with gymnasium the other with gym)
+- To run `PPO` experiments:
+  ```bash
+  pip install git+https://github.com/catid/crafter.git
+  ```
+- To run `DQN` experiments:
+  ```bash
+  pip install git+https://github.com/danijar/crafter.git
+  ```
 
 ### 4. Train an Agent  
 ```bash
@@ -114,6 +122,12 @@ tensorboard --logdir logs/
 - Implement and evaluate a baseline **DQN agent** (from course material).
 - Implement and evaluate a **PPO agent** (not covered in the course). 
 
+### 1st Improvement
+- Implement and evaluate a baseline **Enhanced DQN agent** with (Custom CNN + Shaping) (from course material).
+- Implement and evaluate a **PPO agent** with Variational Auto-Encoder as the feature extractor. 
+### 2nd Improvement
+- Implement and evaluate a baseline **Advanced DQN agent** with (PER + Noisy Nets + Multi-Step) (from course material).
+- Implement and evaluate a **PPO agent** with Variational Auto-Encoder as the feature extractor and Intrinsic Curiosity Module.
 ## Acknowledgements  
 - [Danijar Hafner](https://github.com/danijar) for the Crafter environment.  
 - [Stable-Baselines3](https://github.com/DLR-RM/stable-baselines3) developers. 
